@@ -28,12 +28,16 @@ export const getVoteList = async (): Promise<Array<string>> => {
     const url = "https://data.europarl.europa.eu/api/v1/documents"
     const params = {
         "work-type": "PLENARY_RCV_EP",
-        "format": "application/ld+json",
         "offset": 0,
         "limit": 500
     }
     let response = await loadJsonFromUrl(url, params)
-    let votes = response.docs.map((doc: { identifier: string; }) => doc.identifier)
+
+    let votes = await response.docs.map((doc: { identifier: string; }) => doc.identifier)
+
+    if(typeof votes !== "object" || !Array.isArray(votes)){
+        throw new Error("Votes is not an array")
+    }
     return votes
 }
 
@@ -59,7 +63,6 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
     const title: HTMLElement = html.getElementsByTagName("table")[0]
     const titleName: string = title.getElementsByTagName("span").map((node) => node.structuredText).join("")
     const titleID: string = title.getElementsByTagName("a")[0].structuredText
-    console.log("Parsing: ", titleID, " - ", titleName)
 
     const positive: Array<string> = html
         .getElementsByTagName("table")[1]

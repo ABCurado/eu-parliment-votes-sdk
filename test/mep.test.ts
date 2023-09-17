@@ -3,7 +3,7 @@ import { loadMeps, loadCountryDataFromUrl } from '../src/mep'
 test('code runs and array is not null', async () => {
   let meps = await loadMeps(2, 9);
   expect(meps.meps).toHaveLength(2);
-}, 50000)
+})
 
 
 

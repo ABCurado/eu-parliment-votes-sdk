@@ -43,8 +43,10 @@ export const loadMeps = async (limit: number = 5, term: number = 9): Promise<Mep
     let url: string = "";
     if (term > 0 && term < 10) {
         url = `https://data.europarl.europa.eu/api/v1/meps`;
-        const dict = { "parliamentary-term": term };
-        params = { ...params, dict };
+        params = {
+            "limit": limit,
+            "parliamentary-term": term
+        }
     } else if (term == 0) {
         url = `https://data.europarl.europa.eu/api/v1/meps/show-current`;
     } else {
@@ -52,16 +54,15 @@ export const loadMeps = async (limit: number = 5, term: number = 9): Promise<Mep
     }
 
 
-    const mepsIds = await loadJsonFromUrl(url, params)
+    const mepsIds = await loadJsonFromUrl(url,  params)
     const meps = await Promise.all(mepsIds.meps.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
     return { meps: meps };
 };
 
 // Function that loads detailed information about the meps from the following url `https://data.europarl.europa.eu/person/${mepIdentifier}` and returns it as a json object
 export const loadMep = async (mepIdentifier: string): Promise<Mep> => {
-    const url = `https://data.europarl.europa.eu/person`;
-
-    var response = await loadJsonFromUrl(url, { mepIdentifier: mepIdentifier });
+    const url = `https://data.europarl.europa.eu/api/v1/meps/${mepIdentifier}`;
+    var response = await loadJsonFromUrl(url, {});
 
     const mep = response["@graph"].filter((property: any) => property["@type"] === "foaf:Person")[0];
     const { img, label, homepage, account, citizenship, hasEmail, bday, hasMembership } = mep;
