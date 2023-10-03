@@ -3,8 +3,9 @@ import { countryData } from "./country-data";
 
 
 type Mep = {
+    id: number
     img: string;
-    label: string;
+    fullName: string;
     homepage: string;
     account: string;
     citizenship: string;
@@ -34,11 +35,11 @@ type Meps = {
 };
 
 // Create a function that fecthes json data from this endpoint https://data.europarl.europa.eu/api/v1/meps and loads it into a variable called meps
-export const loadMeps = async (limit: number = 5, term: number = 9): Promise<Meps> => {
+export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails: boolean = false): Promise<Meps> => {
 
     var params: Object = {
         "limit": limit,
-        
+
     }
     let url: string = "";
     if (term > 0 && term < 10) {
@@ -54,8 +55,19 @@ export const loadMeps = async (limit: number = 5, term: number = 9): Promise<Mep
     }
 
 
-    const mepsIds = await loadJsonFromUrl(url,  params)
-    const meps = await Promise.all(mepsIds.meps.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
+    const mepsIds = await loadJsonFromUrl(url, params)
+    var meps: Array<Mep>
+    if (loadDetails) {
+        meps = await Promise.all(mepsIds.meps.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
+    } else {
+        meps = await mepsIds.meps.map((mep: any) => {
+            return {
+                id: parseInt(mep.identifier),
+                fullName: mep.label
+            }
+        });
+    }
+
     return { meps: meps };
 };
 
@@ -63,14 +75,15 @@ export const loadMeps = async (limit: number = 5, term: number = 9): Promise<Mep
 export const loadMep = async (mepIdentifier: string): Promise<Mep> => {
     const url = `https://data.europarl.europa.eu/api/v1/meps/${mepIdentifier}`;
     var response = await loadJsonFromUrl(url, {});
-
+    // Cast id to intiger
+    const id = parseInt(mepIdentifier);
     const mep = response["@graph"].filter((property: any) => property["@type"] === "foaf:Person")[0];
     const { img, label, homepage, account, citizenship, hasEmail, bday, hasMembership } = mep;
     const age = new Date().getFullYear() - new Date(bday).getFullYear();
     let countryData: Country = loadCountryDataFromUrl(citizenship);
     let membershipsUrls = await loadMemberships(hasMembership);
 
-    return { img, label, age, homepage, account, citizenship, hasEmail, bday, country: countryData, memberships: membershipsUrls };
+    return { id, img, fullName: label, age, homepage, account, citizenship, hasEmail, bday, country: countryData, memberships: membershipsUrls };
 };
 
 export const loadCountryDataFromUrl = (citizenshipUrl: string): Country => {

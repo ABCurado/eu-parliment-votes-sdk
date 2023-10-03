@@ -24,21 +24,41 @@ export type Vote = {
         ]
     }
 */
-export const getVoteList = async (): Promise<Array<string>> => {
+export const getVoteList = async (limit: number): Promise<Array<string>> => {
     const url = "https://data.europarl.europa.eu/api/v1/documents"
+    if (limit === undefined || limit === null || limit < 0) {
+        throw new Error("Invalid limit")
+    }
     const params = {
         "work-type": "PLENARY_RCV_EP",
         "offset": 0,
-        "limit": 500
+        "limit": limit
     }
     let response = await loadJsonFromUrl(url, params)
 
     let votes = await response.docs.map((doc: { identifier: string; }) => doc.identifier)
 
-    if(typeof votes !== "object" || !Array.isArray(votes)){
+    if (typeof votes !== "object" || !Array.isArray(votes)) {
         throw new Error("Votes is not an array")
     }
     return votes
+}
+
+export const getVotesFromRCV = async (id: string): Promise<Array<Vote>> => {
+    const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`
+    if (id === undefined || id === null || id === "") {
+        throw new Error("Invalid id")
+    }
+    let response = await fetch(url)
+    if (!response.ok) {
+        throw new Error("HTTP error " + response.status);
+    }
+    const text = await response.text();
+    try {
+        return parseHTMLToVote(text);
+    } catch (e) {
+        throw new Error("Tried to query: " + response.url + " But got and invalid html: " + e);
+    }
 }
 
 export const parseHTMLToVote = (html: string): Array<Vote> => {
@@ -84,6 +104,8 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
         .flatMap((persons) => persons.split(","))
         .map((mep) => mep.trim())
         .filter((mep) => mep !== "0")
+    
+    // TODO: Add missing corrections to votes
 
     return {
         title: titleName,

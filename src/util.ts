@@ -22,6 +22,6 @@ export const loadJsonFromUrl = async (url: string, params: any): Promise<any> =>
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw new Error("Tried to query: " + response.url + " But got and invalid JSON:" + text);
+    throw new Error("Tried to query: " + response.url + " But got and invalid JSON:" + text.substring(0, 100) + "...");
   }
 }
