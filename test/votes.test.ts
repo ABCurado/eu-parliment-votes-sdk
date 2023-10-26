@@ -65,7 +65,10 @@ test('Gets corect vote list for 5', async () => {
 
 test('Parse vote from list', async () => {
     var votes: Array<string> = await getVoteList(500)
-    const last_vote = votes[votes.length - 1];
+    // sort the votes variable that is a string array
+
+    votes.sort();
+    const last_vote = votes[votes.length - 5];
     var result: Array<Vote> = await getVotesFromRCV(last_vote)
     expect(result.length).toBeGreaterThan(0);
 }, 50000)

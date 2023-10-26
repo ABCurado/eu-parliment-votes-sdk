@@ -22,7 +22,7 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 
 
 export const loadVoteWithMeps = async () => {
-    const html = fs.readFileSync('./test/example.html', 'utf-8');
+    const html = fs.readFileSync('./test/assets/individual_votes.html', 'utf-8');
     var votes: Array<Vote> = parseHTMLToVote(html)
     var meps = await loadMeps(2, 0);
 

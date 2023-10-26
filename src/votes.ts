@@ -36,7 +36,7 @@ export const getVoteList = async (limit: number): Promise<Array<string>> => {
     }
     let response = await loadJsonFromUrl(url, params)
 
-    let votes = await response.docs.map((doc: { identifier: string; }) => doc.identifier)
+    let votes = await response.data.map((doc: { identifier: string; }) => doc.identifier)
 
     if (typeof votes !== "object" || !Array.isArray(votes)) {
         throw new Error("Votes is not an array")
@@ -82,7 +82,16 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
 
     const title: HTMLElement = html.getElementsByTagName("table")[0]
     const titleName: string = title.getElementsByTagName("span").map((node) => node.structuredText).join("")
-    const titleID: string = title.getElementsByTagName("a")[0].structuredText
+
+    const titleSpan: HTMLElement[] = title.getElementsByTagName("a")
+    var titleID: string
+    if (titleSpan === undefined || titleSpan.length === 0) {
+        titleID = titleName.match(/([A-Z]{1,2}-[A-Z0-9]{1,3}-[0-9]{4}\/[0-9]{4})|([A-Z][0-9]-[0-9]{4}\/[0-9]{4})/g)?.[0] || ""
+    }else{
+        titleID = titleSpan[0].structuredText
+    }
+
+
 
     const positive: Array<string> = html
         .getElementsByTagName("table")[1]
