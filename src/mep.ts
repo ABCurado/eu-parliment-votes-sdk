@@ -58,9 +58,9 @@ export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails:
     const mepsIds = await loadJsonFromUrl(url, params)
     var meps: Array<Mep>
     if (loadDetails) {
-        meps = await Promise.all(mepsIds.meps.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
+        meps = await Promise.all(mepsIds.data.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
     } else {
-        meps = await mepsIds.meps.map((mep: any) => {
+        meps = await mepsIds.data.map((mep: any) => {
             return {
                 id: parseInt(mep.identifier),
                 fullName: mep.label
