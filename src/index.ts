@@ -1,5 +1,6 @@
 import { loadMeps } from './mep'
-import { parseHTMLToVote, Vote } from './votes'
+import { getVotesFromRCV } from './votes'
+import { cacheFunction } from './util'
 import fs from 'fs';
 
 export const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
@@ -20,34 +21,29 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
     return false;
 }
 
-
 export const loadVoteWithMeps = async () => {
-    const html = fs.readFileSync('./test/assets/individual_votes.html', 'utf-8');
-    var votes: Array<Vote> = parseHTMLToVote(html)
-    var meps = await loadMeps(2, 0);
+    var votes = await cacheFunction(getVotesFromRCV, "PV-9-2022-11-23-RCV")
+    var meps = await cacheFunction(loadMeps, 1000, 0);
 
-    for (const mep of meps.meps) {
-        var hasVoted = false;
-        for (const vote of votes) {
-            console.log(`Total: ${vote.positive.length + vote.negative.length + vote.abstention.length}. ${vote.positive.length} positive votes, ${vote.negative.length} negative votes ${vote.abstention.length} abstentions and  votes for vote: ${vote.title} had `)
+    for (const vote of votes) {
+        var results = {
+            positive: [] as string[],
+            negative: [] as string[],
+            abstention: [] as string[],
+            notVoted: [] as string[]
+        }
+        for (const mep of meps.meps) {
             if (checkNameIsInList(mep.fullName, vote.positive)) {
-                //console.log(`MEP: ${mep.id.toString()}(${mep.fullName}) has voted positive in vote: ${vote.title}(${vote.titleID})`)
-                hasVoted = true;
-            }
-            if (checkNameIsInList(mep.fullName, vote.negative)) {
-                //console.log(`MEP: ${mep.id.toString()}(${mep.fullName}) has voted negative in vote: ${vote.title}(${vote.titleID})`)
-                hasVoted = true;
-            }
-            if (checkNameIsInList(mep.fullName, vote.abstention)) {
-                //console.log(`MEP: ${mep.id.toString()}(${mep.fullName}) has abstained in vote: ${vote.title}(${vote.titleID})`)
-                hasVoted = true;
+                results.positive.push(mep.id.toString());
+            } else if (checkNameIsInList(mep.fullName, vote.negative)) {
+                results.negative.push(mep.id.toString());
+            } else if (checkNameIsInList(mep.fullName, vote.abstention)) {
+                results.abstention.push(mep.id.toString());
             } else {
-                //console.log(`MEP: ${mep.id.toString()}(${mep.fullName}) has not voted in vote: ${vote.title}(${vote.titleID})`)
+                results.notVoted.push(mep.id.toString());
             }
         }
-        //console.log(`MEP: ${mep.id.toString()}(${mep.fullName}) voted? ${hasVoted}`)
+        console.log(`Vote: ${vote.title}(${vote.titleID}) has ${results.positive.length} positive votes, ${results.negative.length} negative votes, ${results.abstention.length} abstention votes and ${results.notVoted.length} not voted`)
     }
     return true;
 }
-
-loadVoteWithMeps();
