@@ -1,5 +1,7 @@
 import { parse, HTMLElement } from 'node-html-parser';
 import { parseStringToHTMLArray, parseHTMLVote, parseHTMLToVote, Vote, getVoteList, getVotesFromRCV } from '../src/votes'
+import { cacheFunction } from '../src/util'
+
 import fs from 'fs';
 
 const html = fs.readFileSync('./test/assets/individual_votes.html', 'utf-8');
@@ -73,8 +75,17 @@ test('Parse vote from list', async () => {
     expect(result.length).toBeGreaterThan(0);
 }, 50000)
 
-
-// Match MEPS to votes
-// Understand how many valid html votes exits
-// Store data in a database
-// Try the llm
+describe('getVoteList', () => {
+    it('should return an array of vote identifiers', async () => {
+      const votes = await cacheFunction(getVoteList,500);
+      expect(Array.isArray(votes)).toBe(true);
+      expect(votes.length).toBeGreaterThan(400);
+      expect(typeof votes[0]).toBe('string');
+    });
+  
+    it('should throw an error if limit is not a positive number', async () => {
+        await expect(getVoteList(-1)).rejects.toThrow('Invalid limit');
+        await expect(getVoteList(null as any)).rejects.toThrow('Invalid limit');
+        await expect(getVoteList(undefined as any)).rejects.toThrow('Invalid limit');
+    });
+  });

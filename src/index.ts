@@ -1,9 +1,8 @@
 import { loadMeps } from './mep'
 import { getVotesFromRCV } from './votes'
 import { cacheFunction } from './util'
-import fs from 'fs';
 
-export const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
+const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
     // Normalize the fullName to remove accents and put in lower case
     const normalizeFullName = fullName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     // Split the full name into individual names
@@ -21,29 +20,37 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
     return false;
 }
 
-export const loadVoteWithMeps = async () => {
-    var votes = await cacheFunction(getVotesFromRCV, "PV-9-2022-11-23-RCV")
+export type VoteResults = {
+    positive: string[];
+    negative: string[];
+    abstention: string[];
+    notVoted: string[];
+};
+
+export const loadVoteWithMeps = async (vote: String) => {
+    var votes = await cacheFunction(getVotesFromRCV, vote);
     var meps = await cacheFunction(loadMeps, 1000, 0);
 
+    var votesResults: { [key: string]: VoteResults } = {};
     for (const vote of votes) {
-        var results = {
-            positive: [] as string[],
-            negative: [] as string[],
-            abstention: [] as string[],
-            notVoted: [] as string[]
-        }
+        var voteResults: VoteResults = {
+            positive: [],
+            negative: [],
+            abstention: [],
+            notVoted: [],
+        };
         for (const mep of meps.meps) {
             if (checkNameIsInList(mep.fullName, vote.positive)) {
-                results.positive.push(mep.id.toString());
+                voteResults.positive.push(mep.id);
             } else if (checkNameIsInList(mep.fullName, vote.negative)) {
-                results.negative.push(mep.id.toString());
+                voteResults.negative.push(mep.id);
             } else if (checkNameIsInList(mep.fullName, vote.abstention)) {
-                results.abstention.push(mep.id.toString());
+                voteResults.abstention.push(mep.id);
             } else {
-                results.notVoted.push(mep.id.toString());
+                voteResults.notVoted.push(mep.id);
             }
         }
-        console.log(`Vote: ${vote.title}(${vote.titleID}) has ${results.positive.length} positive votes, ${results.negative.length} negative votes, ${results.abstention.length} abstention votes and ${results.notVoted.length} not voted`)
+        votesResults[vote.titleID] = voteResults;
     }
-    return true;
-}
+    return votesResults;
+};
