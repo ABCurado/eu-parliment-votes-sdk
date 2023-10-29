@@ -2,18 +2,24 @@ import { loadJsonFromUrl } from "./util";
 import { countryData } from "./country-data";
 
 
-type Mep = {
+export type Mep = {
     id: number
     img: string;
     fullName: string;
-    homepage: string;
-    account: string;
+    account: AccountType[];
     citizenship: string;
-    hasEmail: string;
+    homepage: string;
+    email: string;
+    party: string;
     bday: Date;
     age: number;
     country: Country;
     memberships: Array<Membership>;
+};
+
+type AccountType = {
+    type: string;
+    url: string;
 };
 
 type Country = {
@@ -22,7 +28,7 @@ type Country = {
     flag: string;
 };
 
-type Membership = {
+export type Membership = {
     corporateBody: string | undefined;
     role: string;
     org: string;
@@ -35,7 +41,7 @@ type Meps = {
 };
 
 // Create a function that fecthes json data from this endpoint https://data.europarl.europa.eu/api/v1/meps and loads it into a variable called meps
-export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails: boolean = false): Promise<Meps> => {
+export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails: boolean = false, loadMembershipData: boolean = false): Promise<Meps> => {
 
     var params: Object = {
         "limit": limit,
@@ -58,7 +64,7 @@ export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails:
     const mepsIds = await loadJsonFromUrl(url, params)
     var meps: Array<Mep>
     if (loadDetails) {
-        meps = await Promise.all(mepsIds.data.map((mep: { identifier: string; }) => loadMep(mep.identifier)));
+        meps = await Promise.all(mepsIds.data.map((mep: { identifier: string; }) => loadMep(mep.identifier, loadMembershipData)));
     } else {
         meps = await mepsIds.data.map((mep: any) => {
             return {
@@ -71,19 +77,47 @@ export const loadMeps = async (limit: number = 5, term: number = 9, loadDetails:
     return { meps: meps };
 };
 
-// Function that loads detailed information about the meps from the following url `https://data.europarl.europa.eu/person/${mepIdentifier}` and returns it as a json object
-export const loadMep = async (mepIdentifier: string): Promise<Mep> => {
+/**
+ * Loads MEP data from the European Parliament API.
+ * @param mepIdentifier - The MEP identifier.
+ * @param loadMembershipData - Whether to load membership data.
+ * @returns A promise that resolves to an object containing MEP data.
+ */
+export const loadMep = async (mepIdentifier: string, loadMembershipData: boolean = false): Promise<Mep> => {
     const url = `https://data.europarl.europa.eu/api/v1/meps/${mepIdentifier}`;
     var response = await loadJsonFromUrl(url, {});
     // Cast id to intiger
     const id = parseInt(mepIdentifier);
-    const mep = response["@graph"].filter((property: any) => property["@type"] === "foaf:Person")[0];
-    const { img, label, homepage, account, citizenship, hasEmail, bday, hasMembership } = mep;
+    const mep = response.data[0];
+    const { img, label, homepage, citizenship, hasEmail, bday, hasMembership } = mep;
     const age = new Date().getFullYear() - new Date(bday).getFullYear();
     let countryData: Country = loadCountryDataFromUrl(citizenship);
-    let membershipsUrls = await loadMemberships(hasMembership);
+    let account: AccountType[] = [];
+    if (mep.account) {
+        account = mep.account.map((account: any) => {
+            return {
+                type: account.dcterms_type.split("/").pop(),
+                url: account.id
+            }
+        });
+    }
+    let memberships: Array<Membership> = [];
 
-    return { id, img, fullName: label, age, homepage, account, citizenship, hasEmail, bday, country: countryData, memberships: membershipsUrls };
+    if (loadMembershipData) {
+        memberships = await loadMemberships(hasMembership);
+    } else {
+        memberships = hasMembership.map((element: any) => {
+            return {
+                corporateBody: element.membershipClassification,
+                role: element.role,
+                org: element.organization,
+                startDate: element.memberDuring.startDate,
+                endDate: element.memberDuring.endDate
+            }
+        });
+    }
+    let party: string = parseParty(memberships);
+    return { id, img, fullName: label, age, account, homepage, citizenship, email: hasEmail, memberships, bday, party, country: countryData };
 };
 
 export const loadCountryDataFromUrl = (citizenshipUrl: string): Country => {
@@ -141,3 +175,26 @@ const parseMembership = (membershipsDocument: any): Membership => {
     return { corporateBody: corporateBodyInEnglish, role, org, startDate, endDate };
 }
 
+export const parseParty = (memberships: Array<Membership>): string => {
+    const partyMembership = memberships.find((membership: Membership) => membership.corporateBody?.includes("EP_GROUP") && membership.endDate === undefined);
+    // TODO: To fix party membership when mep has left parliament
+    if (partyMembership === undefined) {
+        return "";
+    }
+    const parties: {[key: string]: string} = {
+        "5148": "ECR",
+        "5152": "NI",
+        "5153": "EPP",
+        "5154": "SD",
+        "5155": "GREEN_EFA",
+        "5704": "RENEW",
+        "6259": "LEFT",
+        "5588": "ID",        
+
+    };
+    const partyId = partyMembership.org?.split("/")?.pop();
+    if (!parties[partyId as keyof typeof parties]) {
+        throw new Error(`Unknown party ${partyId}`);
+    }
+    return parties[partyId as keyof typeof parties];
+}

@@ -54,3 +54,6 @@ export const loadVoteWithMeps = async (vote: String) => {
     }
     return votesResults;
 };
+
+export { loadMeps, loadMep, Mep } from './mep';
+export { getVoteList, getVotesFromRCV, Vote } from './votes';

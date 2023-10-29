@@ -1,4 +1,40 @@
-import fs from 'fs';
+export const cacheFunction = async (func: Function, ...params: any[]) => {
+  const fileName = `${func.name}_${JSON.stringify(params)}`;
+  const cacheKey = `cache_${fileName}`;
+  let cachedData = null;
+
+  if (typeof window !== 'undefined') {
+    // Running in the browser
+    cachedData = localStorage.getItem(cacheKey);
+  } else {
+    // Running in Node.js
+    const fs = require('fs');
+    const filePath = "./src/cache/" + fileName + ".json";
+    if (fs.existsSync(filePath)) {
+      console.log(`Loading data from cache file: ${filePath}`);
+      const data = fs.readFileSync(filePath, 'utf-8');
+      cachedData = JSON.parse(data);
+    }
+  }
+
+  if (cachedData !== null) {
+    console.log(`Loading data from cache: ${cacheKey}`);
+    return cachedData;
+  } else {
+    console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
+    const result = await func(...params);
+    if (typeof window !== 'undefined') {
+      // Running in the browser
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+    } else {
+      // Running in Node.js
+      const fs = require('fs');
+      const filePath = "./src/cache/" + fileName + ".json";
+      fs.writeFileSync(filePath, JSON.stringify(result));
+    }
+    return result;
+  }
+}
 
 export const loadJsonFromUrl = async (url: string, params: any): Promise<any> => {
   var headers = { "accept": "application/ld+json" };
@@ -24,20 +60,5 @@ export const loadJsonFromUrl = async (url: string, params: any): Promise<any> =>
     return JSON.parse(text);
   } catch (e) {
     throw new Error("Tried to query: " + response.url + " But got and invalid JSON:" + text.substring(0, 100) + "...");
-  }
-}
-
-export const cacheFunction = async (func: Function, ...params: any[]) => {
-  const fileName = `${func.name}_${JSON.stringify(params)}`;
-  var filePath = "./src/cache/" + fileName + ".json";
-  if (fs.existsSync(filePath)) {
-      console.log(`Loading data from cache file: ${filePath}`);
-      const data = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(data);
-  } else {
-      console.log(`Cache file not found. Executing function and caching data to file: ${filePath}`);
-      const result = await func(...params);
-      fs.writeFileSync(filePath, JSON.stringify(result));
-      return result;
   }
 }

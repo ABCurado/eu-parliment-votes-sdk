@@ -1,6 +1,6 @@
 {
   "name": "eu-parliment-sdk",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -66,5 +66,10 @@
   "dependencies": {
     "@types/node": "^20.5.9",
     "node-html-parser": "^6.1.8"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }
