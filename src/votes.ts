@@ -3,28 +3,21 @@ import { parse, HTMLElement } from 'node-html-parser'
 import { loadJsonFromUrl } from "./util";
 
 export type Vote = {
-    title: string;
-    titleID: string;
-    positive: Array<string>;
-    negative: Array<string>;
-    abstention: Array<string>;
+    proposalID: string; // ID of the proposal
+    title: string; // Title of the vote and the ammendment if applicable
+    positive: Array<string>; // List of mep names that voted yes
+    negative: Array<string>; // List of mep names that voted no
+    abstention: Array<string>; // List of mep names that abstained
 };
-/*
-    URL   'https://data.europarl.europa.eu/api/v1/documents?work-type=PLENARY_RCV_EP&format=application%2Fld%2Bjson&offset=0&limit=500' 
-    Payload: 
-        {
-        "docs": [
-            {
-            "id": "https://data.europarl.europa.eu/eli/dl/doc/PV-8-2014-07-16-RCV",
-            "type": "Work",
-            "work_type": "http://publications.europa.eu/resource/authority/resource-type/PLENARY_RCV_EP",
-            "identifier": "PV-8-2014-07-16-RCV"
-            }, 
-            ...
-        ]
-    }
-*/
-export const getVoteList = async (limit: number): Promise<Array<string>> => {
+
+export type Proposal = {
+    ID: string; // ID of the proposal
+    title: string; // Title of the porposal
+    votes: Array<Vote>; // List of votes on the proposal
+    finalVote: number; // Index of the final vote in the votes array
+}
+
+export const getProposalVoteList = async (limit: number): Promise<Array<string>> => {
     const url = "https://data.europarl.europa.eu/api/v1/documents"
     if (limit === undefined || limit === null || limit < 0) {
         throw new Error("Invalid limit")
@@ -44,7 +37,10 @@ export const getVoteList = async (limit: number): Promise<Array<string>> => {
     return votes
 }
 
-export const getVotesFromRCV = async (id: string): Promise<Array<Vote>> => {
+// Get vote details by extracing the data from this endpoint https://www.europarl.europa.eu/doceo/document/A-9-2023-0288_EN.html
+
+
+export const getVotesFromRCV = async (id: string): Promise<Array<Proposal>> => {
     const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`
     if (id === undefined || id === null || id === "") {
         throw new Error("Invalid id")
@@ -55,20 +51,61 @@ export const getVotesFromRCV = async (id: string): Promise<Array<Vote>> => {
     }
     const text = await response.text();
     try {
-        return parseHTMLToVote(text);
+        return parseHTMLToProposalVoteArray(text);
     } catch (e) {
         throw new Error("Tried to query: " + response.url + " But got and invalid html: " + e);
     }
 }
 
-export const parseHTMLToVote = (html: string): Array<Vote> => {
-    const HTMLVotes: Array<HTMLElement> = parseStringToHTMLArray(html).slice(1);
-    const votes: Array<Vote> = []
-    for (const vote of HTMLVotes) {
-        votes.push(parseHTMLVote(vote))
+export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
+    const HTMLVotes: Array<HTMLElement> = parseStringToHTMLArray(html);
+    const allVotes: Array<Proposal> = []
+    var seenVotes: Array<string> = []
+    var votes: Array<Vote> = []
+    var proposal: Proposal = { 
+        ID: "",
+        title: "",
+        votes: [],
+        finalVote: 0
     }
 
-    return votes;
+    for (const htmlVote of HTMLVotes) {
+        try{
+            var vote = parseHTMLVote(htmlVote)
+        }catch(e){
+            console.log("Error parsing vote: " + e)
+            continue;
+        }
+
+        if(seenVotes.length === 0){
+            proposal= {
+                ID: vote.proposalID,
+                title: vote.title,
+                votes: [],
+                finalVote: 0
+            }
+            seenVotes.push(vote.proposalID)
+        }
+
+        if (!seenVotes.includes(vote.proposalID) ) {
+            proposal.votes = votes
+            proposal.finalVote = votes.length - 1
+            allVotes.push(proposal)
+            seenVotes.push(vote.proposalID)
+
+            proposal= {
+                ID: vote.proposalID,
+                title: vote.title,
+                votes: [],
+                finalVote: 0
+            }
+            votes = []
+
+        }
+        votes.push(vote)        
+    }
+    allVotes.push(proposal)
+    return allVotes;
 }
 
 export const parseStringToHTMLArray = (html: string): Array<HTMLElement> => {
@@ -90,8 +127,6 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
     }else{
         titleID = titleSpan[0].structuredText
     }
-
-
 
     const positive: Array<string> = html
         .getElementsByTagName("table")[1]
@@ -118,10 +153,9 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
 
     return {
         title: titleName,
-        titleID: titleID,
+        proposalID: titleID,
         positive: positive,
         negative: negative,
         abstention: abstention
     };
-
 };

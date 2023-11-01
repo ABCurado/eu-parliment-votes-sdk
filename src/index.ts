@@ -1,5 +1,5 @@
 import { loadMeps } from './mep'
-import { getVotesFromRCV } from './votes'
+import { getVotesFromRCV,Proposal,Vote } from './votes'
 import { cacheFunction } from './util'
 
 const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
@@ -27,33 +27,38 @@ export type VoteResults = {
     notVoted: string[];
 };
 
-export const loadVoteWithMeps = async (vote: String) => {
-    var votes = await cacheFunction(getVotesFromRCV, vote);
+export const loadVoteWithMeps = async (voteRCV: String) => {
+    var proposalVotes: Array<Proposal> = await cacheFunction(getVotesFromRCV, voteRCV);
     var meps = await cacheFunction(loadMeps, 1000, 0);
 
     var votesResults: { [key: string]: VoteResults } = {};
-    for (const vote of votes) {
-        var voteResults: VoteResults = {
-            positive: [],
-            negative: [],
-            abstention: [],
-            notVoted: [],
-        };
-        for (const mep of meps.meps) {
-            if (checkNameIsInList(mep.fullName, vote.positive)) {
-                voteResults.positive.push(mep.id);
-            } else if (checkNameIsInList(mep.fullName, vote.negative)) {
-                voteResults.negative.push(mep.id);
-            } else if (checkNameIsInList(mep.fullName, vote.abstention)) {
-                voteResults.abstention.push(mep.id);
-            } else {
-                voteResults.notVoted.push(mep.id);
+    for(var proposal of proposalVotes){
+        for (var vote of proposal.votes) {
+            var voteResults: VoteResults = {
+                positive: [],
+                negative: [],
+                abstention: [],
+                notVoted: [],
+            };
+            for (const mep of meps.meps) {
+                if (checkNameIsInList(mep.fullName, vote.positive)) {
+                    voteResults.positive.push(mep.id.toString());
+                } else if (checkNameIsInList(mep.fullName, vote.negative)) {
+                    voteResults.negative.push(mep.id.toString());
+                } else if (checkNameIsInList(mep.fullName, vote.abstention)) {
+                    voteResults.abstention.push(mep.id.toString());
+                } else {
+                    voteResults.notVoted.push(mep.id.toString());
+                }
             }
+            vote.positive = voteResults.positive;
+            vote.negative = voteResults.negative;
+            vote.abstention = voteResults.abstention;
         }
-        votesResults[vote.titleID] = voteResults;
     }
-    return votesResults;
+    return proposalVotes;
 };
 
 export { loadMeps, loadMep, Mep } from './mep';
-export { getVoteList, getVotesFromRCV, Vote } from './votes';
+export { getProposalVoteList, getVotesFromRCV, Vote } from './votes';
+export { cacheFunction } from './util';

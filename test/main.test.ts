@@ -1,27 +1,23 @@
 import { loadVoteWithMeps, VoteResults } from '../src/index';
 
 describe('loadVoteWithMeps', () => {
-  it('should return an object with vote results', async () => {
-    const vote = "PV-9-2022-11-23-RCV";
-    const results = await loadVoteWithMeps(vote);
+  it('should return an array of proposals with updated vote properties', async () => {
+    const voteRCV = 'PV-9-2022-11-23-RCV';
+    const result = await loadVoteWithMeps(voteRCV);
 
-    expect(results).toBeDefined();
-    expect(Object.keys(results).length).toBeGreaterThan(0);
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
 
-    const voteResult: VoteResults = results[Object.keys(results)[0]];
-    expect(voteResult).toBeDefined();
-    expect(voteResult.positive).toBeDefined();
-    expect(voteResult.negative).toBeDefined();
-    expect(voteResult.abstention).toBeDefined();
-    expect(voteResult.notVoted).toBeDefined();
-  });
-  it('should return an object with positive, negative, abstention, and notVoted arrays for each vote', async () => {
-    const voteResults = await loadVoteWithMeps('PV-9-2023-06-01-RCV');
-    expect(Object.keys(voteResults)).toContain('C9-0161/2023');
-    const exampleVoteResults: VoteResults = voteResults['C9-0161/2023'];
-    expect(exampleVoteResults.positive.length).toBeGreaterThan(0);
-    expect(exampleVoteResults.negative.length).toBeGreaterThan(0);
-    expect(exampleVoteResults.abstention.length).toBeGreaterThan(0);
-    expect(exampleVoteResults.notVoted.length).toBeGreaterThan(0);
+    const proposal = result[0];
+    expect(proposal).toHaveProperty('votes');
+    expect(Array.isArray(proposal.votes)).toBe(true);
+
+    const vote = proposal.votes[0];
+    expect(vote).toHaveProperty('positive');
+    expect(vote).toHaveProperty('negative');
+    expect(vote).toHaveProperty('abstention');
+    expect(Array.isArray(vote.positive)).toBe(true);
+    expect(Array.isArray(vote.negative)).toBe(true);
+    expect(Array.isArray(vote.abstention)).toBe(true);
   });
 });

@@ -9,7 +9,10 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
   } else {
     // Running in Node.js
     const fs = require('fs');
-    const filePath = "./src/cache/" + fileName + ".json";
+    const filePath = "./cache/" + fileName + ".json";
+    if (!fs.existsSync("./cache")) {
+      fs.mkdirSync("./cache");
+    }
     if (fs.existsSync(filePath)) {
       console.log(`Loading data from cache file: ${filePath}`);
       const data = fs.readFileSync(filePath, 'utf-8');
@@ -29,7 +32,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     } else {
       // Running in Node.js
       const fs = require('fs');
-      const filePath = "./src/cache/" + fileName + ".json";
+      const filePath = "./cache/" + fileName + ".json";
       fs.writeFileSync(filePath, JSON.stringify(result));
     }
     return result;

@@ -1,0 +1,2 @@
+import { loadVoteWithMeps } from './index';
+
