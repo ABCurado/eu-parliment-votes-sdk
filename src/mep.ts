@@ -33,7 +33,8 @@ export type Membership = {
     role: string;
     org: string;
     startDate: Date;
-    endDate: Date;
+    // End date is undefined if the mep is still a member of the corporate body
+    endDate: Date | undefined;
 };
 
 type Meps = {
@@ -148,7 +149,7 @@ const loadMemberships = async (membershipsUrls: Array<string>, limit = 3): Promi
     return await Promise.all(promises);
 }
 
-const parseMembership = (membershipsDocument: any): Membership => {
+export const parseMembership = (membershipsDocument: any): Membership => {
     // The language to use for the prefLabel of the membership
     const lang = "en";
 
@@ -193,6 +194,8 @@ export const parseParty = (memberships: Array<Membership>): string => {
 
     };
     const partyId = partyMembership.org?.split("/")?.pop();
+    console.log(partyId)
+    console.log(parties[partyId as keyof typeof parties])
     if (!parties[partyId as keyof typeof parties]) {
         throw new Error(`Unknown party ${partyId}`);
     }

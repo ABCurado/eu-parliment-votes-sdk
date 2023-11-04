@@ -62,6 +62,24 @@ export const loadJsonFromUrl = async (url: string, params: any): Promise<any> =>
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw new Error("Tried to query: " + response.url + " But got and invalid JSON:" + text.substring(0, 100) + "...");
+    throw new Error("Tried to query: " + url + " But got and invalid JSON:" + text.substring(0, 100));
   }
+}
+
+export const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
+  // Normalize the fullName to remove accents and put in lower case
+  const normalizeFullName = fullName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  // Split the full name into individual names
+  const names = normalizeFullName.split(' ');
+  // Normalize the nameList to remove accents and put in lower case
+  const normalizeNameList = nameList.map(name => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
+
+  // Check if any of the names are in the list
+  for (const name of names) {
+      if (normalizeNameList.includes(name)) {
+          return true;
+      }
+  }
+
+  return false;
 }

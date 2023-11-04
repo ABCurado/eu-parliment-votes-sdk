@@ -1,10 +1,10 @@
 import { parse, HTMLElement } from 'node-html-parser';
-import { parseStringToHTMLArray, parseHTMLVote, Vote, Proposal, getVotesFromRCV, parseHTMLToProposalVoteArray, getProposalVoteList } from '../src/votes'
-import { cacheFunction } from '../src/util'
+import { parseStringToHTMLArray, parseHTMLVote, Vote, Proposal, getVotesFromRCV, parseHTMLToProposalVoteArray, getProposalVoteList } from './votes'
+import { cacheFunction } from './util'
 
 import fs from 'fs';
 
-const html = fs.readFileSync('./test/assets/individual_votes.html', 'utf-8');
+const html = fs.readFileSync('./src/test_assets/individual_votes.html', 'utf-8');
 
 test('Code doesn"t crash', () => {
     var result = parseStringToHTMLArray("")

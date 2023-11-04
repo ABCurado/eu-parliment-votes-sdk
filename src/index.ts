@@ -1,24 +1,6 @@
 import { loadMeps } from './mep'
-import { getVotesFromRCV,Proposal,Vote } from './votes'
-import { cacheFunction } from './util'
-
-const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
-    // Normalize the fullName to remove accents and put in lower case
-    const normalizeFullName = fullName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    // Split the full name into individual names
-    const names = normalizeFullName.split(' ');
-    // Normalize the nameList to remove accents and put in lower case
-    const normalizeNameList = nameList.map(name => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-
-    // Check if any of the names are in the list
-    for (const name of names) {
-        if (normalizeNameList.includes(name)) {
-            return true;
-        }
-    }
-
-    return false;
-}
+import { getVotesFromRCV,Proposal } from './votes'
+import { cacheFunction, checkNameIsInList } from './util'
 
 export type VoteResults = {
     positive: string[];
@@ -47,7 +29,8 @@ export const loadVoteWithMeps = async (voteRCV: String) => {
                     voteResults.negative.push(mep.id.toString());
                 } else if (checkNameIsInList(mep.fullName, vote.abstention)) {
                     voteResults.abstention.push(mep.id.toString());
-                } else {
+                } 
+                else {
                     voteResults.notVoted.push(mep.id.toString());
                 }
             }
@@ -60,5 +43,5 @@ export const loadVoteWithMeps = async (voteRCV: String) => {
 };
 
 export { loadMeps, loadMep, Mep } from './mep';
-export { getProposalVoteList, getVotesFromRCV, Vote } from './votes';
+export { getProposalVoteList, getVotesFromRCV, Proposal } from './votes';
 export { cacheFunction } from './util';

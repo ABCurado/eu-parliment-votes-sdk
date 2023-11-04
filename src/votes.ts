@@ -73,7 +73,7 @@ export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
         try{
             var vote = parseHTMLVote(htmlVote)
         }catch(e){
-            console.log("Error parsing vote: " + e)
+            console.log("Error parsing vote. Votes parsed so far % error: %s",seenVotes.length, e)
             continue;
         }
 
