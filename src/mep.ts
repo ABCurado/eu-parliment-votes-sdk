@@ -2,8 +2,8 @@ import { loadJsonFromUrl } from "./util";
 import { countryData } from "./country-data";
 
 
-export type Mep = {
-    id: number
+export interface Mep {
+    id: number;
     img: string;
     fullName: string;
     account: AccountType[];
@@ -14,21 +14,21 @@ export type Mep = {
     bday: Date;
     age: number;
     country: Country;
-    memberships: Array<Membership>;
-};
+    memberships: Membership[];
+}
 
-type AccountType = {
+interface AccountType {
     type: string;
     url: string;
 };
 
-type Country = {
+interface Country  {
     commonCame: string;
     officialName: string;
     flag: string;
 };
 
-export type Membership = {
+export interface Membership  {
     corporateBody: string | undefined;
     role: string;
     org: string;
@@ -37,7 +37,7 @@ export type Membership = {
     endDate: Date | undefined;
 };
 
-type Meps = {
+interface Meps  {
     meps: Array<Mep>;
 };
 
@@ -182,7 +182,7 @@ export const parseParty = (memberships: Array<Membership>): string => {
     if (partyMembership === undefined) {
         return "";
     }
-    const parties: {[key: string]: string} = {
+    const parties: { [key: string]: string } = {
         "5148": "ECR",
         "5152": "NI",
         "5153": "EPP",
@@ -190,12 +190,16 @@ export const parseParty = (memberships: Array<Membership>): string => {
         "5155": "GREEN_EFA",
         "5704": "RENEW",
         "6259": "LEFT",
-        "5588": "ID",        
+        "5588": "ID",
 
     };
     const partyId = partyMembership.org?.split("/")?.pop();
+<<<<<<< HEAD
     console.log(partyId)
     console.log(parties[partyId as keyof typeof parties])
+=======
+
+>>>>>>> 6fc4753 (Adds basic document parsing)
     if (!parties[partyId as keyof typeof parties]) {
         throw new Error(`Unknown party ${partyId}`);
     }

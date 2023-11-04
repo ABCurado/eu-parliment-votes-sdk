@@ -2,7 +2,7 @@
 import { parse, HTMLElement } from 'node-html-parser'
 import { loadJsonFromUrl } from "./util";
 
-export type Vote = {
+export interface Vote {
     proposalID: string; // ID of the proposal
     title: string; // Title of the vote and the ammendment if applicable
     positive: Array<string>; // List of mep names that voted yes
@@ -10,7 +10,7 @@ export type Vote = {
     abstention: Array<string>; // List of mep names that abstained
 };
 
-export type Proposal = {
+export interface Proposal {
     ID: string; // ID of the proposal
     title: string; // Title of the porposal
     votes: Array<Vote>; // List of votes on the proposal
@@ -62,7 +62,7 @@ export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
     const allVotes: Array<Proposal> = []
     var seenVotes: Array<string> = []
     var votes: Array<Vote> = []
-    var proposal: Proposal = { 
+    var proposal: Proposal = {
         ID: "",
         title: "",
         votes: [],
@@ -70,15 +70,20 @@ export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
     }
 
     for (const htmlVote of HTMLVotes) {
-        try{
+        try {
             var vote = parseHTMLVote(htmlVote)
+<<<<<<< HEAD
         }catch(e){
             console.log("Error parsing vote. Votes parsed so far % error: %s",seenVotes.length, e)
+=======
+        } catch (e) {
+            console.log("Error parsing vote. Votes parsed so far % error: %s", seenVotes.length, e)
+>>>>>>> 6fc4753 (Adds basic document parsing)
             continue;
         }
 
-        if(seenVotes.length === 0){
-            proposal= {
+        if (seenVotes.length === 0) {
+            proposal = {
                 ID: vote.proposalID,
                 title: vote.title,
                 votes: [],
@@ -87,13 +92,13 @@ export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
             seenVotes.push(vote.proposalID)
         }
 
-        if (!seenVotes.includes(vote.proposalID) ) {
+        if (!seenVotes.includes(vote.proposalID)) {
             proposal.votes = votes
             proposal.finalVote = votes.length - 1
             allVotes.push(proposal)
             seenVotes.push(vote.proposalID)
 
-            proposal= {
+            proposal = {
                 ID: vote.proposalID,
                 title: vote.title,
                 votes: [],
@@ -102,7 +107,7 @@ export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
             votes = []
 
         }
-        votes.push(vote)        
+        votes.push(vote)
     }
     allVotes.push(proposal)
     return allVotes;
@@ -124,7 +129,7 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
     var titleID: string
     if (titleSpan === undefined || titleSpan.length === 0) {
         titleID = titleName.match(/([A-Z]{1,2}-[A-Z0-9]{1,3}-[0-9]{4}\/[0-9]{4})|([A-Z][0-9]-[0-9]{4}\/[0-9]{4})/g)?.[0] || ""
-    }else{
+    } else {
         titleID = titleSpan[0].structuredText
     }
 
@@ -148,7 +153,7 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
         .flatMap((persons) => persons.split(","))
         .map((mep) => mep.trim())
         .filter((mep) => mep !== "0")
-    
+
     // TODO: Add missing corrections to votes
 
     return {
