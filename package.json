@@ -65,7 +65,8 @@
   },
   "dependencies": {
     "@types/node": "^20.5.9",
-    "node-html-parser": "^6.1.8"
+    "node-html-parser": "^6.1.8",
+    "openai": "^4.17.4"
   },
   "browser": {
     "fs": false,

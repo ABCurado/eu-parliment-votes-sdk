@@ -62,3 +62,4 @@ export const loadVoteWithMeps = async (voteRCV: String) => {
 export { loadMeps, loadMep, Mep } from './mep';
 export { getProposalVoteList, getVotesFromRCV, Proposal } from './votes';
 export { cacheFunction } from './util';
+export { Document, fetchAndParseDocument } from './document';
