@@ -194,12 +194,6 @@ export const parseParty = (memberships: Array<Membership>): string => {
 
     };
     const partyId = partyMembership.org?.split("/")?.pop();
-<<<<<<< HEAD
-    console.log(partyId)
-    console.log(parties[partyId as keyof typeof parties])
-=======
-
->>>>>>> 6fc4753 (Adds basic document parsing)
     if (!parties[partyId as keyof typeof parties]) {
         throw new Error(`Unknown party ${partyId}`);
     }

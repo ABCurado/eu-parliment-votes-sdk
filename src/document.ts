@@ -5,9 +5,14 @@ type DocumentType = 'report' | 'motion' | 'amendment' | 'declaration' | 'resolut
 
 export interface Document {
     content: string;
-    summary: string;
+    summary: Summary;
     type: DocumentType;
     url: string;
+}
+
+interface Summary {
+    summary: string;
+    tags: string[];
 }
 
 export async function fetchAndParseDocument(id: string): Promise<Document> {
@@ -33,6 +38,10 @@ export async function fetchAndParseDocument(id: string): Promise<Document> {
     // Remove anything that comes after the string "Instructs its President to forward this resolution"
     documentText = documentText.substring(0, documentText.indexOf("Instructs its President to forward this resolution"));
 
+    if (documentText === undefined || documentText === null || documentText === "") {
+        throw new Error(`Could not find document text in ${url}`);
+    }
+    
     const summary = await summarizeDocument(documentText);
 
     return {
@@ -43,21 +52,30 @@ export async function fetchAndParseDocument(id: string): Promise<Document> {
     };
 }
 
-export async function summarizeDocument(documentText: string): Promise<string> {
+export async function summarizeDocument(documentText: string): Promise<Summary> {
     const openai = new OpenAI({
         apiKey: "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",
     });
-    
-    const prompt = `Please summarize the following document. The summary should have around 75 words. Document:\n\n${documentText}`;
-    
+
+    const prompt = `You should summarise documents.You will get the content of a document in a multi paragraph format and you need to produce 2 outcomes.
+    The first task is a text summary of aproximately 50 words. The writing style should be simple and easy to read you, possibly funny. When possible use emojis and bullet points.
+    The second task is to return 5 tags that describe this proposal.
+    This is the expected json format {summary: string, tags: string[]}`;
+
     const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",        
-        messages:[ 
-            { role: 'user', content: prompt }
+        model: "gpt-3.5-turbo-1106",
+        messages: [
+            {role: "system", content: prompt},
+            {role: "user", content: documentText}
         ],
+        response_format: { type: "json_object" },
+        temperature: 0.3
     });
-    const summary = response.choices[0]?.message?.content;
-
-    return summary || '';
-
+    const summaryJsonString = response.choices[0].message.content;
+    if(summaryJsonString == undefined) {
+        throw new Error("OpenAI returned an empty summary");
+    }
+    // summary is a string with the format json format {summary: string, tags: string[]}. We need to parse it.
+    const summary: Summary = JSON.parse(summaryJsonString);
+    return summary;
 }
