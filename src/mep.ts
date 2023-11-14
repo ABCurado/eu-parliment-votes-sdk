@@ -89,6 +89,9 @@ export const loadMep = async (mepIdentifier: string, loadMembershipData: boolean
     var response = await loadJsonFromUrl(url, {});
     // Cast id to intiger
     const id = parseInt(mepIdentifier);
+    if (typeof id !== "number") {
+        throw new Error("Id is not a number");
+    }
     const mep = response.data[0];
     const { img, label, homepage, citizenship, hasEmail, bday, hasMembership } = mep;
     const age = new Date().getFullYear() - new Date(bday).getFullYear();
