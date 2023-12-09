@@ -4,22 +4,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
   const cacheKey = `cache_${fileName}`;
   let cachedData = null;
 
-  // Check if the cloudflare cache is enabled from the environment variable.
-  // If it is enabled, we use s3 as the cache.
-  if (process.env.CLOUDFLARE_CACHE_ENABLED === "true") {
-    // Running in Cloudflare Workers
-    // https://pub-13e42995607f46baaa4ae791ef7ee848.r2.dev/eu-parliment-sdk/cache_func_[2,3]
-    console.log("Using Cloudflare cache to load", cacheKey);
-    try {
-      const fetchResponse = await fetch(`${process.env.CLOUDFLARE_S3_ENDPOINT}/${cacheKey}`);
-      return await fetchResponse.json();
-    } catch (err) {
-      console.log(err);
-      return null;
-    }
-  }
-
-  else if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined') {
     // Running in the browser
     cachedData = localStorage.getItem(cacheKey);
     if (cachedData !== null) {
