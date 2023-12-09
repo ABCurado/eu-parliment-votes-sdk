@@ -19,7 +19,15 @@ export async function fetchAndParseDocument(id: string): Promise<Document> {
     const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`;
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
+        return {
+            content: `HTTP error ${response.status}`,
+            url: url,
+            summary: {
+                summary: "",
+                tags: []
+            },
+            type: "other",
+        };
     }
     let type: DocumentType;
     if (id.startsWith('A')) {
@@ -39,9 +47,17 @@ export async function fetchAndParseDocument(id: string): Promise<Document> {
     documentText = documentText.substring(0, documentText.indexOf("Instructs its President to forward this resolution"));
 
     if (documentText === undefined || documentText === null || documentText === "") {
-        throw new Error(`Could not find document text in ${url}`);
+        return {
+            content: `Could not find document text`,
+            url: url,
+            summary: {
+                summary: "",
+                tags: []
+            },
+            type: "other",
+        };
     }
-    
+
     const summary = await summarizeDocument(documentText);
 
     return {
@@ -65,14 +81,14 @@ export async function summarizeDocument(documentText: string): Promise<Summary> 
     const response = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-1106",
         messages: [
-            {role: "system", content: prompt},
-            {role: "user", content: documentText}
+            { role: "system", content: prompt },
+            { role: "user", content: documentText }
         ],
         response_format: { type: "json_object" },
         temperature: 0.3
     });
     const summaryJsonString = response.choices[0].message.content;
-    if(summaryJsonString == undefined) {
+    if (summaryJsonString == undefined) {
         throw new Error("OpenAI returned an empty summary");
     }
     // summary is a string with the format json format {summary: string, tags: string[]}. We need to parse it.

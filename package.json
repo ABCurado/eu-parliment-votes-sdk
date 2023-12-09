@@ -1,6 +1,6 @@
 {
   "name": "eu-parliment-sdk",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@types/node": "^20.5.9",
+    "eu-parliment-sdk": "file:eu-parliment-sdk-1.2.tgz",
     "node-html-parser": "^6.1.8",
     "openai": "^4.17.4"
   },

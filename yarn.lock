@@ -2050,6 +2050,15 @@ esutils@^2.0.2:
   resolved "https://registry.npmjs.org/esutils/-/esutils-2.0.3.tgz"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
 
+"eu-parliment-sdk@file:eu-parliment-sdk-1.2.tgz":
+  version "1.2"
+  resolved "file:eu-parliment-sdk-1.2.tgz"
+  integrity sha512-5Kw0I5yFCnc5/9pIHAJboupEgNPH0I3HnN93Nx7MyB0OYFt3IaIQ7CH/tW4o/CTAxEHLeASAuJGRyqIZTcaNTg==
+  dependencies:
+    "@types/node" "^20.5.9"
+    node-html-parser "^6.1.8"
+    openai "^4.17.4"
+
 event-target-shim@^5.0.0:
   version "5.0.1"
   resolved "https://registry.npmjs.org/event-target-shim/-/event-target-shim-5.0.1.tgz"
