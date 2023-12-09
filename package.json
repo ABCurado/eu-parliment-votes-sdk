@@ -1,7 +1,7 @@
 {
   "name": "eu-parliment-sdk",
   "version": "1.5.1",
-  "description": "eu-parliment-sdk is a library that provides a simple interface to the EU Parliment API.",
+  "description": "eu-parliment-sdk` is a library that provides a simple interface to the EU Parliment API.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "umd:main": "dist/umd/index.js",
@@ -67,5 +67,10 @@
     "@types/node": "^20.5.9",
     "node-html-parser": "^6.1.8",
     "openai": "^4.17.4"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }
