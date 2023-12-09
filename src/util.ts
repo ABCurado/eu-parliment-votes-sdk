@@ -8,7 +8,8 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
   // If it is enabled, we use s3 as the cache.
   if (process.env.CLOUDFLARE_CACHE_ENABLED === "true") {
     // Running in Cloudflare Workers
-    const {S3Client, GetObjectCommand,PutObjectCommand} = require('@aws-sdk/client-s3');
+    console.log("Using Cloudflare cache to load", cacheKey);
+    const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
     const S3 = new S3Client({
       region: "auto",
       endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
@@ -17,7 +18,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
         secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
       },
     });
-    
+
     try {
       const input = {
         "Bucket": "eu-parliment-sdk",
@@ -25,12 +26,16 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
       };
       const command = new GetObjectCommand(input);
       const response = await S3.send(command);
-      const data = response.Body.toString('utf-8');
-      cachedData = JSON.parse(data);
-      console.log(`Loading data from cache: ${cacheKey}`);
+      const jsonString = await response.Body?.transformToString()
+      cachedData = JSON.parse(jsonString ?? '');
+      console.log(`Loaded data from cache: ${cacheKey}`);
       return cachedData;
     }
     catch (err) {
+      if ((err as Error).name !== 'NoSuchKey') {
+        console.log(err);
+        return null;
+      }
       console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
       const result = await func(...params);
       const input = {
