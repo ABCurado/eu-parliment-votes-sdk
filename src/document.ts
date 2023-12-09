@@ -70,7 +70,7 @@ export async function fetchAndParseDocument(id: string): Promise<Document> {
 
 export async function summarizeDocument(documentText: string): Promise<Summary> {
     const openai = new OpenAI({
-        apiKey: "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",
+        apiKey: process.env.OPENAI_API_KEY,
     });
 
     const prompt = `You should summarise documents.You will get the content of a document in a multi paragraph format and you need to produce 2 outcomes.
