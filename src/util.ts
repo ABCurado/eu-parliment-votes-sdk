@@ -1,12 +1,65 @@
+
 export const cacheFunction = async (func: Function, ...params: any[]) => {
   const fileName = `${func.name}_${JSON.stringify(params)}`;
   const cacheKey = `cache_${fileName}`;
   let cachedData = null;
 
+  // Check if the cloudflare cache is enabled from the environment variable.
+  // If it is enabled, we use s3 as the cache.
+  if (process.env.CLOUDFLARE_CACHE_ENABLED === "true") {
+    // Running in Cloudflare Workers
+    const {S3Client, GetObjectCommand,PutObjectCommand} = require('@aws-sdk/client-s3');
+    const S3 = new S3Client({
+      region: "auto",
+      endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
+        secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
+      },
+    });
+    
+    try {
+      const input = {
+        "Bucket": "eu-parliment-sdk",
+        "Key": cacheKey
+      };
+      const command = new GetObjectCommand(input);
+      const response = await S3.send(command);
+      const data = response.Body.toString('utf-8');
+      cachedData = JSON.parse(data);
+      console.log(`Loading data from cache: ${cacheKey}`);
+      return cachedData;
+    }
+    catch (err) {
+      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
+      const result = await func(...params);
+      const input = {
+        "Bucket": "eu-parliment-sdk",
+        "Key": cacheKey,
+        "Body": JSON.stringify(result)
+      };
+      const command = new PutObjectCommand(input);
+      await S3.send(command);
+      return result;
+    }
+  }
+
   if (typeof window !== 'undefined') {
     // Running in the browser
     cachedData = localStorage.getItem(cacheKey);
-  } else {
+    if (cachedData !== null) {
+      cachedData = JSON.parse(cachedData);
+      console.log(`Loading data from cache: ${cacheKey}`);
+      return cachedData;
+    } else {
+      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
+      const result = await func(...params);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+      return result;
+    }
+  }
+
+  if (typeof window === 'undefined') {
     // Running in Node.js
     const fs = require('fs');
     const filePath = "./cache/" + fileName + ".json";
@@ -17,25 +70,15 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
       console.log(`Loading data from cache file: ${filePath}`);
       const data = fs.readFileSync(filePath, 'utf-8');
       cachedData = JSON.parse(data);
-    }
-  }
-
-  if (cachedData !== null) {
-    console.log(`Loading data from cache: ${cacheKey}`);
-    return cachedData;
-  } else {
-    console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
-    const result = await func(...params);
-    if (typeof window !== 'undefined') {
-      // Running in the browser
-      localStorage.setItem(cacheKey, JSON.stringify(result));
+      return cachedData;
     } else {
       // Running in Node.js
       const fs = require('fs');
       const filePath = "./cache/" + fileName + ".json";
+      const result = await func(...params);
+      console.log(`Cache not found. Executing function and caching data to cache file: ${filePath}`);
       fs.writeFileSync(filePath, JSON.stringify(result));
     }
-    return result;
   }
 }
 
@@ -56,7 +99,7 @@ export const loadJsonFromUrl = async (url: string, params: any): Promise<any> =>
   let response = await fetch(url + paramsBuilder.toString(), { headers: headers })
 
   if (!response.ok) {
-    throw new Error("HTTP error " + response.status+ " for url: " + url + paramsBuilder.toString());
+    throw new Error("HTTP error " + response.status + " for url: " + url + paramsBuilder.toString());
   }
   const text = await response.text();
   try {
@@ -76,9 +119,9 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 
   // Check if any of the names are in the list
   for (const name of names) {
-      if (normalizeNameList.includes(name)) {
-          return true;
-      }
+    if (normalizeNameList.includes(name)) {
+      return true;
+    }
   }
 
   return false;
