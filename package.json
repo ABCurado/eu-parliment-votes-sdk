@@ -19,7 +19,7 @@
     "test": "jest ",
     "test:full": "jest --no-cache --runInBand --detectOpenHandles --detectLeaks --forceExit",
     "test:cov": "jest --coverage --no-cache --runInBand",
-    "addscope": "node tools/packagejson name @ABCurado/eu-parliment-sdk"
+    "addscope": "node tools/packagejson name @abcurado/eu-parliment-sdk"
   },
   "publishConfig": {
     "access": "public"
