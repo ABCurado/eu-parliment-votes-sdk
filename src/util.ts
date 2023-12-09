@@ -8,48 +8,14 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
   // If it is enabled, we use s3 as the cache.
   if (process.env.CLOUDFLARE_CACHE_ENABLED === "true") {
     // Running in Cloudflare Workers
+    // https://pub-13e42995607f46baaa4ae791ef7ee848.r2.dev/eu-parliment-sdk/cache_func_[2,3]
     console.log("Using Cloudflare cache to load", cacheKey);
-    const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
-    const S3 = new S3Client({
-      region: "auto",
-      endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
-        secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
-      },
-    });
-
     try {
-      const input = {
-        "Bucket": "eu-parliment-sdk",
-        "Key": cacheKey
-      };
-      const command = new GetObjectCommand(input);
-      const response = await S3.send(command);
-      const jsonString = await response.Body?.transformToString()
-      cachedData = JSON.parse(jsonString ?? '');
-      console.log(`Loaded data from cache: ${cacheKey}`);
-      return cachedData;
-    }
-    catch (err) {
-      if ((err as Error).name !== 'NoSuchKey') {
-        console.log(err);
-        return null;
-      }
-      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
-      const result = await func(...params);
-      const input = {
-        "Bucket": "eu-parliment-sdk",
-        "Key": cacheKey,
-        "Body": JSON.stringify(result)
-      };
-      const command = new PutObjectCommand(input);
-      try {
-        const response = await S3.send(command);
-      } catch (err) {
-        console.log(err);
-      }
-      return result;
+      const fetchResponse = await fetch(`${process.env.CLOUDFLARE_S3_ENDPOINT}/${cacheKey}`);
+      return await fetchResponse.json();
+    } catch (err) {
+      console.log(err);
+      return null;
     }
   }
 
@@ -135,3 +101,48 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 
   return false;
 }
+
+
+console.log("Using Cloudflare cache to load", cacheKey);
+const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+const S3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
+  },
+});
+
+// try {
+//   const input = {
+//     "Bucket": "eu-parliment-sdk",
+//     "Key": cacheKey
+//   };
+//   const command = new GetObjectCommand(input);
+//   const response = await S3.send(command);
+//   const jsonString = await response.Body?.transformToString()
+//   cachedData = JSON.parse(jsonString ?? '');
+//   console.log(`Loaded data from cache: ${cacheKey}`);
+//   return cachedData;
+// }
+// catch (err) {
+//   if ((err as Error).name !== 'NoSuchKey') {
+//     console.log(err);
+//     return null;
+//   }
+//   console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
+//   const result = await func(...params);
+//   const input = {
+//     "Bucket": "eu-parliment-sdk",
+//     "Key": cacheKey,
+//     "Body": JSON.stringify(result)
+//   };
+//   const command = new PutObjectCommand(input);
+//   try {
+//     const response = await S3.send(command);
+//   } catch (err) {
+//     console.log(err);
+//   }
+//   return result;
+// }
