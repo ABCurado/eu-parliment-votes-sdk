@@ -39,7 +39,11 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
         "Body": JSON.stringify(result)
       };
       const command = new PutObjectCommand(input);
-      await S3.send(command);
+      try {
+        const response = await S3.send(command);
+      } catch (err) {
+        console.log(err);
+      }
       return result;
     }
   }
