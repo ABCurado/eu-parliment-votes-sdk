@@ -31,7 +31,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
       return cachedData;
     }
     catch (err) {
-      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
+      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
       const result = await func(...params);
       const input = {
         "Bucket": "eu-parliment-sdk",
