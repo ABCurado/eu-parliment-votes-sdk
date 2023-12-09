@@ -19,7 +19,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     }
   }
 
-  if (typeof window !== 'undefined') {
+  else if (typeof window !== 'undefined') {
     // Running in the browser
     cachedData = localStorage.getItem(cacheKey);
     if (cachedData !== null) {
@@ -34,7 +34,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     }
   }
 
-  if (typeof window === 'undefined') {
+  else if (typeof window === 'undefined') {
     // Running in Node.js
     const fs = require('fs');
     const filePath = "./cache/" + fileName + ".json";
@@ -102,18 +102,16 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
   return false;
 }
 
-
-console.log("Using Cloudflare cache to load", cacheKey);
-const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
-const S3 = new S3Client({
-  region: "auto",
-  endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
-    secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
-  },
-});
-
+// To be remoeved
+// const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+// const S3 = new S3Client({
+//   region: "auto",
+//   endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
+//   credentials: {
+//     accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
+//     secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
+//   },
+// });
 // try {
 //   const input = {
 //     "Bucket": "eu-parliment-sdk",
