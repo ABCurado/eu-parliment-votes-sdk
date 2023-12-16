@@ -38,6 +38,7 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
       const result = await func(...params);
       console.log(`Cache not found. Executing function and caching data to cache file: ${filePath}`);
       fs.writeFileSync(filePath, JSON.stringify(result));
+      return result;
     }
   }
 }
