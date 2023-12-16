@@ -74,7 +74,7 @@ export async function summarizeDocument(documentText: string): Promise<Summary> 
     });
 
     const prompt = `You should summarise documents.You will get the content of a document in a multi paragraph format and you need to produce 2 outcomes.
-    The first task is a text summary of aproximately 50 words. The writing style should be simple and easy to read you, possibly funny. When possible use emojis and bullet points.
+    The first task is a text summary of aproximately 50 words. The writing style should be simple and easy to read you, possibly funny. When possible use emojis and bullet points. If if the document is empty you should return an empty string.
     The second task is to return 5 tags that describe this proposal.
     This is the expected json format {summary: string, tags: string[]}`;
 
@@ -85,7 +85,7 @@ export async function summarizeDocument(documentText: string): Promise<Summary> 
             { role: "user", content: documentText }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.3
+        temperature: 0.1
     });
     const summaryJsonString = response.choices[0].message.content;
     if (summaryJsonString == undefined) {
