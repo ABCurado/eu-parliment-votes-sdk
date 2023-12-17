@@ -100,7 +100,7 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 // });
 // try {
 //   const input = {
-//     "Bucket": "eu-parliment-sdk",
+//     "Bucket": "eu-parliment-votes-sdk ",
 //     "Key": cacheKey
 //   };
 //   const command = new GetObjectCommand(input);
@@ -118,7 +118,7 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 //   console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
 //   const result = await func(...params);
 //   const input = {
-//     "Bucket": "eu-parliment-sdk",
+//     "Bucket": "eu-parliment-votes-sdk ",
 //     "Key": cacheKey,
 //     "Body": JSON.stringify(result)
 //   };

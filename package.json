@@ -1,7 +1,7 @@
 {
-  "name": "eu-parliment-sdk",
+  "name": "eu-parliment-votes-sdk ",
   "version": "1.5.4",
-  "description": "eu-parliment-sdk` is a library that provides a simple interface to the EU Parliment API.",
+  "description": "eu-parliment-votes-sdk ` is a library that provides a simple interface to the EU Parliment API.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "umd:main": "dist/umd/index.js",
@@ -19,7 +19,7 @@
     "test": "jest ",
     "test:full": "jest --no-cache --runInBand --detectOpenHandles --detectLeaks --forceExit",
     "test:cov": "jest --coverage --no-cache --runInBand",
-    "addscope": "node tools/packagejson name @abcurado/eu-parliment-sdk"
+    "addscope": "node tools/packagejson name @abcurado/eu-parliment-votes-sdk "
   },
   "publishConfig": {
     "access": "public"
@@ -36,13 +36,13 @@
   ],
   "author": "ABCurado <antonio.b.curado@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/ABCurado/eu-parliment-sdk",
+  "homepage": "https://github.com/ABCurado/eu-parliment-votes-sdk ",
   "repository": {
     "type": "git",
-    "url": "git@github.com:ABCurado/eu-parliment-sdk.git"
+    "url": "git@github.com:ABCurado/eu-parliment-votes-sdk .git"
   },
   "bugs": {
-    "url": "https://github.com/ABCurado/eu-parliment-sdk/issues"
+    "url": "https://github.com/ABCurado/eu-parliment-votes-sdk /issues"
   },
   "devDependencies": {
     "@commitlint/cli": "^13.1.0",
