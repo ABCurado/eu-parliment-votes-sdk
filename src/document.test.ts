@@ -16,7 +16,7 @@ describe('summarizeDocument', () => {
     it('should return an empty summary', async () => {
         const documentText = 'This is a test document that should return an empty summary';
         const summary = await summarizeDocument(documentText);
-        expect(summary.texts).toBe('');
+        expect(summary.text).toBe('');
     });
 });
 
