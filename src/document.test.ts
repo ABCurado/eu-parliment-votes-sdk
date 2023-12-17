@@ -9,14 +9,14 @@ describe('summarizeDocument', () => {
 
         expect(summary).toHaveProperty('summary');
         expect(summary).toHaveProperty('tags');
-        expect(summary.summary).not.toBe('');
+        expect(summary.text).not.toBe('');
         expect(summary.tags.length).toBeGreaterThan(0);
     });
 
     it('should return an empty summary', async () => {
         const documentText = 'This is a test document that should return an empty summary';
         const summary = await summarizeDocument(documentText);
-        expect(summary.summary).toBe('');
+        expect(summary.texts).toBe('');
     });
 });
 
