@@ -4,31 +4,33 @@ This is a project that aims to simply the access to EU parliment data.
 The data is open but certain API's only return html or pdf which is not often the easiest format for developers to build on top of.   
 The goal of this package is to simplify this and return everything as simple method call.    
 
+## Examples
 
+TODO
 
-## Objects
+## Data Objects
 
+#### Vote information
 ``` javascript
-
-    export interface Proposal {
+    export interface DocumentVote {
         ID: string; // ID of the proposal
-        title: string; // Title of the proposal
+        title: string; // Title of the porposal
         votes: Array<Vote>; // List of votes on the proposal
         finalVote: number; // Index of the final vote in the votes array
+        date?: Date; // Date of the vote
     }
 
     export interface Vote {
-        proposalID: string; // ID of the proposal, a proposal can have many votes
+        proposalID: string; // ID of the proposal
         title: string; // Title of the vote and the ammendment if applicable
-        voteResults: VoteResults
+        result: VoteResults; // Results of the vote
     };
 
-    // Parses the mep names into mep ids
-    export type VoteResults = {
-        positive: number[];
-        negative: number[];
-        abstention: number[];
-        notVoted: number[];
+    export interface VoteResults {
+        positive: Array<number>; // List of mep ids that voted yes
+        negative: Array<number>; // List of mep ids that voted no
+        abstention: Array<number>; // List of mep ids that abstained
+        noVote: Array<number>; // List of mep ids that did not vote
     };
 ```
 
@@ -50,7 +52,6 @@ The goal of this package is to simplify this and return everything as simple met
 ```
 
 #### Meps Information
-
 ``` javascript
     export interface Mep {
         id: number;
@@ -100,6 +101,9 @@ The goal of this package is to simplify this and return everything as simple met
 Meps Data - https://data.europarl.europa.eu/api/v1/meps/ + custom data enrichment
 Document Data - https://www.europarl.europa.eu/doceo/document
 
+#### Extra
+Explain the cache function and why it is necessary
+Improve error handle to further improve visibility on api's rate limits
 
 #### Future
 

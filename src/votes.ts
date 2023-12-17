@@ -1,4 +1,6 @@
 import { parse, HTMLElement } from 'node-html-parser'
+import { loadMeps, Mep } from './mep'
+import { checkNameIsInList } from './util'
 
 export interface DocumentVote {
     ID: string; // ID of the proposal
@@ -11,11 +13,15 @@ export interface DocumentVote {
 export interface Vote {
     proposalID: string; // ID of the proposal
     title: string; // Title of the vote and the ammendment if applicable
-    positive: Array<string>; // List of mep names that voted yes
-    negative: Array<string>; // List of mep names that voted no
-    abstention: Array<string>; // List of mep names that abstained
+    result: VoteResults; // Results of the vote
 };
 
+export interface VoteResults {
+    positive: Array<number>; // List of mep ids that voted yes
+    negative: Array<number>; // List of mep ids that voted no
+    abstention: Array<number>; // List of mep ids that abstained
+    noVote: Array<number>; // List of mep ids that did not vote
+};
 
 // Get vote details by extracing the data from this endpoint https://www.europarl.europa.eu/doceo/document/A-9-2023-0288_EN.html
 export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> => {
@@ -28,14 +34,17 @@ export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> 
         throw new Error("HTTP error " + response.status);
     }
     const text = await response.text();
+    
+    const meps = await loadMeps(1000, 0);
+
     try {
-        return parseHTMLToDocumentVoteVoteArray(text);
+        return parseHTMLToDocumentVoteVoteArray(text, meps.meps);
     } catch (e) {
         throw new Error("Tried to query: " + response.url + " But got and invalid html: " + e);
     }
 }
 
-export const parseHTMLToDocumentVoteVoteArray = (html: string): Array<DocumentVote> => {
+export const parseHTMLToDocumentVoteVoteArray = (html: string, meps: Array<Mep>): Array<DocumentVote> => {
     const HTMLVotes: Array<HTMLElement> = parseStringToHTMLArray(html);
     const allVotes: Array<DocumentVote> = []
     var seenVotes: Array<string> = []
@@ -49,7 +58,7 @@ export const parseHTMLToDocumentVoteVoteArray = (html: string): Array<DocumentVo
 
     for (const htmlVote of HTMLVotes) {
         try {
-            var vote = parseHTMLVote(htmlVote)
+            var vote = parseHTMLVote(htmlVote, meps)
         }catch(e : any){
             console.log(`Error parsing vote. Votes parsed so far ${seenVotes.length} error: ${e.message}`,)
             continue;
@@ -93,7 +102,28 @@ export const parseStringToHTMLArray = (html: string): Array<HTMLElement> => {
     return votes
 };
 
-export const parseHTMLVote = (html: HTMLElement): Vote => {
+export const parseMepNamesToID = (meps: Array<Mep>,positive: Array<string>,negative: Array<string>, abstained: Array<string> ): VoteResults => {
+    var voteResults: VoteResults = {
+        positive: [],
+        negative: [],
+        abstention: [],
+        noVote: [],
+    };
+    for (const mep of meps) {
+        if (checkNameIsInList(mep.fullName, positive)) {
+            voteResults.positive.push(mep.id);
+        } else if (checkNameIsInList(mep.fullName, negative)) {
+            voteResults.negative.push(mep.id);
+        } else if (checkNameIsInList(mep.fullName, abstained)) {
+            voteResults.abstention.push(mep.id);
+        } else {
+            voteResults.noVote.push(mep.id);
+        }
+    }
+    return voteResults;
+}
+
+export const parseHTMLVote = (html: HTMLElement, meps: Array<Mep>): Vote => {
 
     const title: HTMLElement = html.getElementsByTagName("table")[0]
     const titleName: string = title.getElementsByTagName("span").map((node) => node.structuredText).join("")
@@ -106,6 +136,8 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
         titleID = titleSpan[0].structuredText
     }
 
+    // FIXME: Add missing corrections to votes
+    // TODO: Make this code easier to read
     const positive: Array<string> = html
         .getElementsByTagName("table")[1]
         .getElementsByTagName("tr")
@@ -119,7 +151,7 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
         .flatMap((persons) => persons.split(","))
         .map((mep) => mep.trim())
         .filter((mep) => mep !== "-")
-    const abstention: Array<string> = html
+    const abstained: Array<string> = html
         .getElementsByTagName("table")[3]
         .getElementsByTagName("tr")
         .map((party) => party.getElementsByTagName("td")[1].structuredText)
@@ -127,13 +159,11 @@ export const parseHTMLVote = (html: HTMLElement): Vote => {
         .map((mep) => mep.trim())
         .filter((mep) => mep !== "0")
 
-    // TODO: Add missing corrections to votes
+    const voteResults = parseMepNamesToID(meps,positive,negative,abstained)
 
     return {
         title: titleName,
         proposalID: titleID,
-        positive: positive,
-        negative: negative,
-        abstention: abstention
+        result: voteResults
     };
 };
