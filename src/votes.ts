@@ -1,10 +1,12 @@
 import { parse, HTMLElement } from 'node-html-parser'
 import { loadMeps, Mep } from './mep'
-import { checkNameIsInList } from './util'
+import { checkNameIsInList,loadJsonFromUrl } from './util'
+
 
 export interface DocumentVote {
-    ID: string; // ID of the proposal
-    title: string; // Title of the porposal
+    id: string; // ID of the proposal
+    titleRaw: string; // Raw title of the vote
+    title?: string; // Title of the vote parsed from the raw title
     votes: Array<Vote>; // List of votes on the proposal
     finalVote: number; // Index of the final vote in the votes array
     date?: Date; // Date of the vote
@@ -23,6 +25,33 @@ export interface VoteResults {
     noVote: Array<number>; // List of mep ids that did not vote
 };
 
+/**
+ * Retrieves an array of document identifiers for documents with votes.
+ * Roll call votes or RCVs are votes where the MEPs are recorded individually.
+ * This method retrieves the document identifiers for all RCVs.
+ * @param limit The maximum number of documents to retrieve.
+ * @returns A promise that resolves to an array of document identifiers.
+ * @throws {Error} If the limit is invalid or if the document list cannot be parsed.
+ */
+export const getRCVs = async (limit: number): Promise<Array<string>> => {
+    const url = "https://data.europarl.europa.eu/api/v1/documents"
+    if (limit === undefined || limit === null || limit < 0) {
+        throw new Error("Invalid limit")
+    }
+    const params = {
+        "work-type": "PLENARY_RCV_EP",
+        "offset": 0,
+        "limit": limit
+    }
+    let response = await loadJsonFromUrl(url, params)
+    let votes = await response.data.map((doc: { identifier: string; }) => doc.identifier)
+
+    if (typeof votes !== "object" || !Array.isArray(votes)) {
+        throw new Error("Could not parse document list")
+    }
+    return votes
+}
+
 // Get vote details by extracing the data from this endpoint https://www.europarl.europa.eu/doceo/document/A-9-2023-0288_EN.html
 export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> => {
     const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`
@@ -38,22 +67,27 @@ export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> 
     const meps = await loadMeps(1000, 0);
 
     try {
-        return parseHTMLToDocumentVoteVoteArray(text, meps.meps);
+        return parseHTMLToDocumentVoteArray(id, text, meps.meps);
     } catch (e) {
         throw new Error("Tried to query: " + response.url + " But got and invalid html: " + e);
     }
 }
 
-export const parseHTMLToDocumentVoteVoteArray = (html: string, meps: Array<Mep>): Array<DocumentVote> => {
+export const parseHTMLToDocumentVoteArray = (id: string, html: string, meps: Array<Mep>): Array<DocumentVote> => {
     const HTMLVotes: Array<HTMLElement> = parseStringToHTMLArray(html);
     const allVotes: Array<DocumentVote> = []
     var seenVotes: Array<string> = []
     var votes: Array<Vote> = []
+    const parts = id.split('-');
+    // parts[2] is the year, parts[3] is the month, parts[4] is the day
+    const date = new Date(parseInt(parts[2]), parseInt(parts[3]) - 1, parseInt(parts[4]));
+        
     var proposal: DocumentVote = {
-        ID: "",
-        title: "",
+        id: "",
+        titleRaw: "",
         votes: [],
-        finalVote: 0
+        finalVote: 0,
+        date: date
     }
 
     for (const htmlVote of HTMLVotes) {
@@ -64,12 +98,21 @@ export const parseHTMLToDocumentVoteVoteArray = (html: string, meps: Array<Mep>)
             continue;
         }
 
+        let title = vote.title
+        const regex = /\s-\s(.*?)\s-\s/;
+        const match = vote.title.match(regex);
+        if (match && match[1]) {
+            title = match[1];
+        }
+
         if (seenVotes.length === 0) {
             proposal = {
-                ID: vote.proposalID,
-                title: vote.title,
+                id: vote.proposalID,
+                titleRaw: vote.title,
+                title: title,
                 votes: [],
-                finalVote: 0
+                finalVote: 0,
+                date: date
             }
             seenVotes.push(vote.proposalID)
         }
@@ -81,10 +124,12 @@ export const parseHTMLToDocumentVoteVoteArray = (html: string, meps: Array<Mep>)
             seenVotes.push(vote.proposalID)
 
             proposal = {
-                ID: vote.proposalID,
-                title: vote.title,
+                id: vote.proposalID,
+                titleRaw: vote.title,
+                title: title,
                 votes: [],
-                finalVote: 0
+                finalVote: 0,
+                date: date
             }
             votes = []
 
@@ -96,7 +141,6 @@ export const parseHTMLToDocumentVoteVoteArray = (html: string, meps: Array<Mep>)
 }
 
 export const parseStringToHTMLArray = (html: string): Array<HTMLElement> => {
-
     const root = parse(html);
     const votes: Array<HTMLElement> = root.getElementsByTagName("table").filter(table => table.attributes.class === "doc_box_header");
     return votes

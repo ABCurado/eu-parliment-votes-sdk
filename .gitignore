@@ -1,5 +1,6 @@
 .DS_Store
 src/cache
+src/dataExport
 cache
 # Logs
 logs
