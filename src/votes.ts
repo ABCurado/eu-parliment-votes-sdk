@@ -1,6 +1,12 @@
-
 import { parse, HTMLElement } from 'node-html-parser'
-import { loadJsonFromUrl } from "./util";
+
+export interface DocumentVote {
+    ID: string; // ID of the proposal
+    title: string; // Title of the porposal
+    votes: Array<Vote>; // List of votes on the proposal
+    finalVote: number; // Index of the final vote in the votes array
+    date?: Date; // Date of the vote
+}
 
 export interface Vote {
     proposalID: string; // ID of the proposal
@@ -10,37 +16,9 @@ export interface Vote {
     abstention: Array<string>; // List of mep names that abstained
 };
 
-export interface Proposal {
-    ID: string; // ID of the proposal
-    title: string; // Title of the porposal
-    votes: Array<Vote>; // List of votes on the proposal
-    finalVote: number; // Index of the final vote in the votes array
-}
-
-export const getProposalVoteList = async (limit: number): Promise<Array<string>> => {
-    const url = "https://data.europarl.europa.eu/api/v1/documents"
-    if (limit === undefined || limit === null || limit < 0) {
-        throw new Error("Invalid limit")
-    }
-    const params = {
-        "work-type": "PLENARY_RCV_EP",
-        "offset": 0,
-        "limit": limit
-    }
-    let response = await loadJsonFromUrl(url, params)
-
-    let votes = await response.data.map((doc: { identifier: string; }) => doc.identifier)
-
-    if (typeof votes !== "object" || !Array.isArray(votes)) {
-        throw new Error("Votes is not an array")
-    }
-    return votes
-}
 
 // Get vote details by extracing the data from this endpoint https://www.europarl.europa.eu/doceo/document/A-9-2023-0288_EN.html
-
-
-export const getVotesFromRCV = async (id: string): Promise<Array<Proposal>> => {
+export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> => {
     const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`
     if (id === undefined || id === null || id === "") {
         throw new Error("Invalid id")
@@ -51,18 +29,18 @@ export const getVotesFromRCV = async (id: string): Promise<Array<Proposal>> => {
     }
     const text = await response.text();
     try {
-        return parseHTMLToProposalVoteArray(text);
+        return parseHTMLToDocumentVoteVoteArray(text);
     } catch (e) {
         throw new Error("Tried to query: " + response.url + " But got and invalid html: " + e);
     }
 }
 
-export const parseHTMLToProposalVoteArray = (html: string): Array<Proposal> => {
+export const parseHTMLToDocumentVoteVoteArray = (html: string): Array<DocumentVote> => {
     const HTMLVotes: Array<HTMLElement> = parseStringToHTMLArray(html);
-    const allVotes: Array<Proposal> = []
+    const allVotes: Array<DocumentVote> = []
     var seenVotes: Array<string> = []
     var votes: Array<Vote> = []
-    var proposal: Proposal = {
+    var proposal: DocumentVote = {
         ID: "",
         title: "",
         votes: [],

@@ -19,28 +19,27 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     }
   }
 
-  else if (typeof window === 'undefined') {
+  // Running in Node.js
+  const fs = require('fs');
+  const filePath = "./cache/" + fileName + ".json";
+  if (!fs.existsSync("./cache")) {
+    fs.mkdirSync("./cache");
+  }
+  if (fs.existsSync(filePath)) {
+    console.log(`Loading data from cache file: ${filePath}`);
+    const data = fs.readFileSync(filePath, 'utf-8');
+    cachedData = JSON.parse(data);
+    return cachedData;
+  } else {
     // Running in Node.js
     const fs = require('fs');
     const filePath = "./cache/" + fileName + ".json";
-    if (!fs.existsSync("./cache")) {
-      fs.mkdirSync("./cache");
-    }
-    if (fs.existsSync(filePath)) {
-      console.log(`Loading data from cache file: ${filePath}`);
-      const data = fs.readFileSync(filePath, 'utf-8');
-      cachedData = JSON.parse(data);
-      return cachedData;
-    } else {
-      // Running in Node.js
-      const fs = require('fs');
-      const filePath = "./cache/" + fileName + ".json";
-      const result = await func(...params);
-      console.log(`Cache not found. Executing function and caching data to cache file: ${filePath}`);
-      fs.writeFileSync(filePath, JSON.stringify(result));
-      return result;
-    }
+    const result = await func(...params);
+    console.log(`Cache not found. Executing function and caching data to cache file: ${filePath}`);
+    fs.writeFileSync(filePath, JSON.stringify(result));
+    return result;
   }
+
 }
 
 export const loadJsonFromUrl = async (url: string, params: any): Promise<any> => {
@@ -87,46 +86,3 @@ export const checkNameIsInList = (fullName: string, nameList: string[]): boolean
 
   return false;
 }
-
-// To be remoeved
-// const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
-// const S3 = new S3Client({
-//   region: "auto",
-//   endpoint: process.env.CLOUDFLARE_S3_ENDPOINT,
-//   credentials: {
-//     accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY,
-//     secretAccessKey: process.env.CLOUDFLARE_SECRET_KEY,
-//   },
-// });
-// try {
-//   const input = {
-//     "Bucket": "eu-parliment-votes-sdk ",
-//     "Key": cacheKey
-//   };
-//   const command = new GetObjectCommand(input);
-//   const response = await S3.send(command);
-//   const jsonString = await response.Body?.transformToString()
-//   cachedData = JSON.parse(jsonString ?? '');
-//   console.log(`Loaded data from cache: ${cacheKey}`);
-//   return cachedData;
-// }
-// catch (err) {
-//   if ((err as Error).name !== 'NoSuchKey') {
-//     console.log(err);
-//     return null;
-//   }
-//   console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`, err);
-//   const result = await func(...params);
-//   const input = {
-//     "Bucket": "eu-parliment-votes-sdk ",
-//     "Key": cacheKey,
-//     "Body": JSON.stringify(result)
-//   };
-//   const command = new PutObjectCommand(input);
-//   try {
-//     const response = await S3.send(command);
-//   } catch (err) {
-//     console.log(err);
-//   }
-//   return result;
-// }

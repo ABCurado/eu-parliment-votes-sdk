@@ -1,24 +1,6 @@
 import { loadMeps } from './mep'
 import { getVotesFromRCV,Proposal,Vote } from './votes'
-import { cacheFunction } from './util'
-
-const checkNameIsInList = (fullName: string, nameList: string[]): boolean => {
-    // Normalize the fullName to remove accents and put in lower case
-    const normalizeFullName = fullName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    // Split the full name into individual names
-    const names = normalizeFullName.split(' ');
-    // Normalize the nameList to remove accents and put in lower case
-    const normalizeNameList = nameList.map(name => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-
-    // Check if any of the names are in the list
-    for (const name of names) {
-        if (normalizeNameList.includes(name)) {
-            return true;
-        }
-    }
-
-    return false;
-}
+import { cacheFunction,checkNameIsInList } from './util'
 
 export type VoteResults = {
     positive: string[];
