@@ -1,14 +1,15 @@
 {
-  "include": ["src/**/*.ts", "test/votes.test.ts", "test/document.test.ts", "test/util.test.ts", "test/mep.test.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "lib"],
   "compilerOptions": {
-    "lib": ["dom", "es2018", "es2020"],
+    "lib": ["dom", "ES2017", "es2020"],
+    "target": "ES2020", // compile to ES2020
     "moduleResolution": "node",
     "declaration": true, // generate .d.ts files
     "sourceMap": true, // generate source map
     "outDir": "dist", // output compiled js, d.ts, and source map to dist folder
     "strict": true,
     "esModuleInterop": true,
-    "declarationMap": true
+    "module": "CommonJS"
   }
 }
