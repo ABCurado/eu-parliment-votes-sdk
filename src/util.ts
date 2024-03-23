@@ -9,10 +9,8 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     cachedData = localStorage.getItem(cacheKey);
     if (cachedData !== null) {
       cachedData = JSON.parse(cachedData);
-      console.log(`Loading data from cache: ${cacheKey}`);
       return cachedData;
     } else {
-      console.log(`Cache not found. Executing function and caching data to cache: ${cacheKey}`);
       const result = await func(...params);
       localStorage.setItem(cacheKey, JSON.stringify(result));
       return result;
@@ -26,7 +24,6 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     fs.mkdirSync("./cache");
   }
   if (fs.existsSync(filePath)) {
-    console.log(`Loading data from cache file: ${filePath}`);
     const data = fs.readFileSync(filePath, 'utf-8');
     cachedData = JSON.parse(data);
     return cachedData;
@@ -35,7 +32,6 @@ export const cacheFunction = async (func: Function, ...params: any[]) => {
     const fs = require('fs');
     const filePath = "./cache/" + fileName + ".json";
     const result = await func(...params);
-    console.log(`Cache not found. Executing function and caching data to cache file: ${filePath}`);
     fs.writeFileSync(filePath, JSON.stringify(result));
     return result;
   }

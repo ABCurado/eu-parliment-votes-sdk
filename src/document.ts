@@ -1,4 +1,5 @@
-import { parse, HTMLElement } from 'node-html-parser';
+import { HTMLElement, parse } from 'node-html-parser';
+
 import OpenAI from "openai";
 import { loadJsonFromUrl } from "./util";
 
@@ -27,7 +28,7 @@ interface Summary {
  */
 export async function fetchAndParseDocument(id: string, summarise: boolean = true): Promise<Document> {
     const url = `https://www.europarl.europa.eu/doceo/document/${id}_EN.html`;
-    console.log(`Fetching document ${id} from ${url}`);
+
     const response = await fetch(url);
     if (!response.ok || response.status !== 200) {
         throw new Error(`Failed to fetch document ${id} (${url} - ${response.status})`);
@@ -59,21 +60,22 @@ export async function fetchAndParseDocument(id: string, summarise: boolean = tru
         // Remove anything that comes before the string "The European Parliament"
         documentText = documentTextRaw.substring(documentTextRaw.indexOf("The European Parliament"));
         // Remove anything that comes after the string "Instructs its President to forward this resolution"
-        documentText = documentText.substring(0, documentText.indexOf("Instructs its President to forward this resolution"));
+        if(documentText.includes("Instructs its President to forward this resolution")){
+            documentText = documentText.substring(0, documentText.indexOf("Instructs its President to forward this resolution"));
+        }
 
         if (documentText !== undefined && documentText !== null && documentText !== "") {
             summary = await summarizeDocument(documentText);
         }
 
     }
-
     return {
         id: id,
         contentRaw: documentTextRaw,
         content: documentText,
         summary: summary,
         url: url,
-        type,
+        type
     };
 }
 
@@ -91,7 +93,7 @@ export async function summarizeDocument(documentText: string): Promise<Summary> 
     });
 
     const prompt = `You should summarise documents. You will get the content of a document in a multi paragraph format and you need to produce 2 outcomes.
-    The first task is a text summary of aproximately 50 words. The writing style should be simple and easy to read you, possibly funny. When possible use emojis and bullet points.
+    The first task is a text summary of aproximately 50 words. The writing style should be simple and easy to read, possibly funny. When possible use emojis and bullet points.
     The second task is to return 5 tags that describe this proposal.
     This is the expected json format {text: string, tags: string[]}`;
 

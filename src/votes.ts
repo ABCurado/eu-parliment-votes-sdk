@@ -1,7 +1,6 @@
-import { parse, HTMLElement } from 'node-html-parser'
-import { loadMeps, Mep } from './mep'
-import { checkNameIsInList,loadJsonFromUrl } from './util'
-
+import { HTMLElement, parse } from 'node-html-parser'
+import { Mep, loadMeps } from './mep'
+import { checkNameIsInList, loadJsonFromUrl } from './util'
 
 export interface DocumentVote {
     id: string; // ID of the proposal
@@ -65,7 +64,7 @@ export const getVotesFromRCV = async (id: string): Promise<Array<DocumentVote>> 
     const text = await response.text();
     
     const meps = await loadMeps(1000, 0);
-
+    
     try {
         return parseHTMLToDocumentVoteArray(id, text, meps.meps);
     } catch (e) {
@@ -94,7 +93,17 @@ export const parseHTMLToDocumentVoteArray = (id: string, html: string, meps: Arr
         try {
             var vote = parseHTMLVote(htmlVote, meps)
         }catch(e : any){
-            console.log(`Error parsing vote. Votes parsed so far ${seenVotes.length} error: ${e.message}`,)
+            const vote: Vote = {
+                proposalID: "failed",
+                title: "failedToParse",
+                result: {
+                    positive: [],
+                    negative: [],
+                    abstention: [],
+                    noVote: []
+                }
+            }
+            votes.push(vote)
             continue;
         }
 
