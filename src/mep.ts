@@ -36,7 +36,7 @@ export interface Membership {
   endDate: Date | undefined
 }
 
-interface Meps {
+export interface Meps {
   meps: Array<Mep>
   term?: number // The term number
   withDetails?: boolean // Whether to load details

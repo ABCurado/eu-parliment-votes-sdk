@@ -3,7 +3,7 @@ import { HTMLElement, parse } from 'node-html-parser'
 import OpenAI from 'openai'
 import { loadJsonFromUrl } from './util'
 
-type DocumentType =
+export type DocumentType =
   | 'report'
   | 'motion'
   | 'amendment'
