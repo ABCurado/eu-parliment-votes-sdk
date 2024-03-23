@@ -1,6 +1,6 @@
 {
   "name": "eu-parliment-votes-sdk",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "eu-parliment-votes-sdk ` is a library that provides a simple interface to the EU Parliment API.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
