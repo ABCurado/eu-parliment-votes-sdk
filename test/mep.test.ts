@@ -1,4 +1,4 @@
-import { loadMeps, Membership, loadCountryDataFromUrl, parseParty, parseMembership } from './mep';
+import { Membership, loadCountryDataFromUrl, loadMeps, parseMembership, parseParty } from '../src/mep';
 
 describe('parseMembership', () => {
   it('should parse a membership object', () => {

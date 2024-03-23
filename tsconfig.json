@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/votes.test.ts", "test/document.test.ts", "test/util.test.ts", "test/mep.test.ts"],
   "exclude": ["node_modules", "dist", "lib"],
   "compilerOptions": {
     "lib": ["dom", "es2015", "es2020"],

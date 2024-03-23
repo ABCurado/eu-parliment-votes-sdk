@@ -1,7 +1,7 @@
-import { parse, HTMLElement } from 'node-html-parser';
-import { parseStringToHTMLArray, parseHTMLVote, Vote, getVotesFromRCV } from './votes'
-import { cacheFunction } from './util'
+import { HTMLElement, parse } from 'node-html-parser';
+import { Vote, getVotesFromRCV, parseHTMLVote, parseStringToHTMLArray } from '../src/votes'
 
+import { cacheFunction } from '../src/util'
 import fs from 'fs';
 
 const html = fs.readFileSync('./src/test_assets/individual_votes.html', 'utf-8');

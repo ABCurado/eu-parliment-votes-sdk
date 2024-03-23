@@ -1,6 +1,6 @@
-import { cacheFunction } from './util';
-import { checkNameIsInList } from './util';
-import { loadJsonFromUrl } from './util';
+import { cacheFunction } from '../src/util';
+import { checkNameIsInList } from '../src/util';
+import { loadJsonFromUrl } from '../src/util';
 
 describe('cacheFunction', () => {
     it('should cache the result of a function', async () => {

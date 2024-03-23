@@ -1,5 +1,5 @@
-import { summarizeDocument } from './document';
-import { fetchAndParseDocument } from './document';
+import { fetchAndParseDocument } from '../src/document';
+import { summarizeDocument } from '../src/document';
 
 describe('summarizeDocument', () => {
     it('should return a summary and tags for a given document', async () => {
