@@ -1,4 +1,4 @@
-// Thank you Alejandro Garcia for the data contributed with my part
+// Thank you Alejandro Garcia for the data.
 // https://restcountries.com/v3.1/region/europe
 export const countryData = [
   {
