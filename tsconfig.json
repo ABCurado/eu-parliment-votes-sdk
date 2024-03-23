@@ -2,7 +2,7 @@
   "include": ["src/**/*.ts", "test/votes.test.ts", "test/document.test.ts", "test/util.test.ts", "test/mep.test.ts"],
   "exclude": ["node_modules", "dist", "lib"],
   "compilerOptions": {
-    "lib": ["dom", "es2015", "es2020"],
+    "lib": ["dom", "es2018", "es2020"],
     "moduleResolution": "node",
     "declaration": true, // generate .d.ts files
     "sourceMap": true, // generate source map
