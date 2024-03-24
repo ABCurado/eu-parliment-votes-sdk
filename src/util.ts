@@ -63,7 +63,7 @@ export const loadJsonFromUrl = async (
         response.status +
         ' for url: ' +
         url +
-        paramsBuilder.toString()
+        paramsBuilder.toString() + ' ' + response.statusText
     )
   }
   const text = await response.text()
