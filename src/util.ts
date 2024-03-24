@@ -58,12 +58,13 @@ export const loadJsonFromUrl = async (
   })
 
   if (!response.ok) {
+    console.log(response.text)
     throw new Error(
       'HTTP error ' +
         response.status +
         ' for url: ' +
         url +
-        paramsBuilder.toString() + ' ' + response.statusText
+        paramsBuilder.toString() + ' ' + response.text
     )
   }
   const text = await response.text()
