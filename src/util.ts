@@ -53,13 +53,16 @@ export const loadJsonFromUrl = async (
     url += '?'
   }
 
-  let response = await fetch(url + paramsBuilder.toString(), {
+  let response: Response = await fetch(url + paramsBuilder.toString(), {
     headers: headers,
   })
 
   if (!response.ok) {
     const text = await response.text()
-    console.log(text)
+    console.log('Request URL:', url + paramsBuilder.toString());
+    console.log('Headers:', response.headers);
+    console.log('Redirected:', response.redirected);
+    console.log(text);
     throw new Error(
       'HTTP error ' +
         response.status +
